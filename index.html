@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sazón Venezolano - Planificador Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+
+<body class="p-4 md:p-8" x-data="app()">
+
+    <header class="mb-6 text-center md:text-left md:flex md:justify-between items-center bg-white p-6 rounded-xl shadow-md">
+        <div>
+            <h1 class="text-3xl font-bold text-yellow-600"><i class="fas fa-utensils"></i> Sazón VZLA</h1>
+            <p class="text-gray-500">Planificador de Menú & Inventario</p>
+        </div>
+        <div class="mt-4 md:mt-0 flex gap-4 bg-gray-100 p-3 rounded-lg">
+            <div>
+                <label class="text-xs font-bold text-gray-500 block">ADULTOS</label>
+                <input type="number" x-model.number="config.adultos" class="w-16 p-1 text-center bg-white rounded border">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-500 block">NIÑOS (3-5)</label>
+                <input type="number" x-model.number="config.ninos" class="w-16 p-1 text-center bg-white rounded border">
+            </div>
+        </div>
+    </header>
+
+    <div class="flex mb-6 gap-2">
+        <button @click="tab = 'inventario'" :class="{'bg-yellow-500 text-white': tab === 'inventario', 'bg-white text-gray-600': tab !== 'inventario'}" class="flex-1 py-2 rounded-lg font-bold shadow transition">📦 Mi Despensa</button>
+        <button @click="tab = 'recetas'" :class="{'bg-blue-600 text-white': tab === 'recetas', 'bg-white text-gray-600': tab !== 'recetas'}" class="flex-1 py-2 rounded-lg font-bold shadow transition">🍲 Recetas</button>
+    </div>
+
+    <div x-show="tab === 'inventario'" x-transition class="grid md:grid-cols-2 gap-6">
+        
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Lo que tienes en casa</h2>
+            <div class="overflow-y-auto max-h-[400px]">
+                <template x-for="(item, index) in inventario" :key="index">
+                    <div class="flex justify-between items-center p-3 border-b hover:bg-gray-50">
+                        <div>
+                            <span x-text="item.nombre" class="font-bold text-gray-700 block"></span>
+                            <span class="text-xs text-gray-400" x-text="item.categoria"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button @click="item.cantidad = Math.max(0, item.cantidad - 100); guardar()" class="w-8 h-8 bg-red-100 text-red-600 rounded-full">-</button>
+                            <span class="w-16 text-center font-mono">
+                                <span x-text="item.cantidad"></span> <span x-text="item.unidad" class="text-xs"></span>
+                            </span>
+                            <button @click="item.cantidad += 100; guardar()" class="w-8 h-8 bg-green-100 text-green-600 rounded-full">+</button>
+                            <button @click="eliminarItem(index)" class="text-red-400 hover:text-red-600 ml-2"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-md h-fit">
+            <h2 class="text-xl font-bold mb-4 text-blue-600">🛒 Agregar Compra</h2>
+            <div class="space-y-3">
+                <input type="text" x-model="nuevoItem.nombre" placeholder="Ej: Harina PAN" class="w-full p-2 border rounded">
+                <div class="flex gap-2">
+                    <input type="number" x-model.number="nuevoItem.cantidad" placeholder="Cant." class="w-1/2 p-2 border rounded">
+                    <select x-model="nuevoItem.unidad" class="w-1/2 p-2 border rounded bg-white">
+                        <option value="g">Gramos (g)</option>
+                        <option value="ml">Mililitros (ml)</option>
+                        <option value="und">Unidades</option>
+                    </select>
+                </div>
+                <select x-model="nuevoItem.categoria" class="w-full p-2 border rounded bg-white">
+                    <option value="Carbohidrato">Carbohidrato</option>
+                    <option value="Proteína">Proteína</option>
+                    <option value="Vegetal">Vegetal/Fruta</option>
+                    <option value="Varios">Varios</option>
+                </select>
+                <button @click="agregarItem()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded transition">
+                    <i class="fas fa-plus-circle"></i> Guardar en Despensa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="tab === 'recetas'" x-cloak x-transition>
+        <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+            <h2 class="text-xl font-bold mb-2">🍽️ ¿Qué cocinamos hoy?</h2>
+            <p class="text-sm text-gray-500 mb-4">Calculado para <span x-text="config.adultos"></span> Adultos y <span x-text="config.ninos"></span> Niños.</p>
+            
+            <div class="relative mb-6">
+                <input type="text" x-model="busqueda" placeholder="Buscar receta (ej. Arepa, Pollo, Caraotas)..." class="w-full p-3 pl-10 border rounded-lg shadow-sm">
+                <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="receta in recetasFiltradas" :key="receta.nombre">
+                    <div class="border rounded-xl overflow-hidden hover:shadow-lg transition bg-white relative">
+                        <div class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold"
+                             :class="verificarStock(receta) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                            <span x-text="verificarStock(receta) ? '✅ Disponible' : '❌ Faltan Ingredientes'"></span>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 border-b">
+                            <h3 class="font-bold text-lg" x-text="receta.nombre"></h3>
+                            <p class="text-xs text-gray-500" x-text="receta.desc"></p>
+                        </div>
+                        
+                        <div class="p-4">
+                            <h4 class="text-xs font-bold uppercase text-gray-400 mb-2">Ingredientes Requeridos:</h4>
+                            <ul class="text-sm space-y-1">
+                                <template x-for="(cant, ing) in receta.ingredientes">
+                                    <li class="flex justify-between" :class="tieneIngrediente(ing, calcularCantidad(cant)) ? 'text-gray-700' : 'text-red-500 font-bold'">
+                                        <span x-text="ing"></span>
+                                        <span>
+                                            <span x-text="calcularCantidad(cant)"></span>
+                                            <span x-text="obtenerUnidad(ing)"></span>
+                                        </span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                        
+                        <div class="p-4 bg-gray-50 border-t">
+                            <button @click="cocinar(receta)" 
+                                    :disabled="!verificarStock(receta)"
+                                    :class="verificarStock(receta) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'"
+                                    class="w-full text-white font-bold py-2 rounded transition">
+                                <i class="fas fa-fire-alt"></i> Preparar (Descontar)
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <div x-show="recetasFiltradas.length === 0" class="text-center p-8 text-gray-500">
+                <i class="fas fa-search mb-2 text-2xl"></i>
+                <p>No se encontraron recetas con ese nombre.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function app() {
+            return {
+                tab: 'inventario',
+                busqueda: '',
+                config: { adultos: 4, ninos: 1 },
+                
+                // Base de datos inicial (se carga si no hay LocalStorage)
+                inventario: JSON.parse(localStorage.getItem('vzla_stock')) || [
+                    { nombre: 'Harina de Maíz', cantidad: 2000, unidad: 'g', categoria: 'Carbohidrato' },
+                    { nombre: 'Arroz', cantidad: 3000, unidad: 'g', categoria: 'Carbohidrato' },
+                    { nombre: 'Pasta', cantidad: 1000, unidad: 'g', categoria: 'Carbohidrato' },
+                    { nombre: 'Caraotas Negras', cantidad: 1000, unidad: 'g', categoria: 'Proteína' },
+                    { nombre: 'Carne Molida', cantidad: 500, unidad: 'g', categoria: 'Proteína' },
+                    { nombre: 'Pollo', cantidad: 2000, unidad: 'g', categoria: 'Proteína' },
+                    { nombre: 'Huevo', cantidad: 12, unidad: 'und', categoria: 'Proteína' },
+                    { nombre: 'Queso Duro', cantidad: 500, unidad: 'g', categoria: 'Proteína' },
+                    { nombre: 'Aceite', cantidad: 900, unidad: 'ml', categoria: 'Varios' },
+                    { nombre: 'Cebolla', cantidad: 5, unidad: 'und', categoria: 'Vegetal' },
+                    { nombre: 'Ají Dulce', cantidad: 10, unidad: 'und', categoria: 'Vegetal' }
+                ],
+
+                nuevoItem: { nombre: '', cantidad: null, unidad: 'g', categoria: 'Carbohidrato' },
+
+                // Recetario "Interno" (Simulando API)
+                recetario: [
+                    {
+                        nombre: 'Arepas con Perico',
+                        desc: 'Desayuno clásico y rendidor.',
+                        ingredientes: { 'Harina de Maíz': 100, 'Huevo': 1.5, 'Cebolla': 0.2, 'Aceite': 10, 'Queso Duro': 20 }
+                    },
+                    {
+                        nombre: 'Pabellón Criollo (Simplificado)',
+                        desc: 'Caraotas, Arroz y Carne mechada/molida.',
+                        ingredientes: { 'Arroz': 80, 'Caraotas Negras': 80, 'Carne Molida': 100, 'Ají Dulce': 1, 'Cebolla': 0.2, 'Aceite': 15 }
+                    },
+                    {
+                        nombre: 'Pasta con Carne Rendida',
+                        desc: 'Con salsa boloñesa y vegetales.',
+                        ingredientes: { 'Pasta': 100, 'Carne Molida': 80, 'Cebolla': 0.3, 'Aceite': 10 }
+                    },
+                    {
+                        nombre: 'Arroz con Pollo Casero',
+                        desc: 'Pollo troceado con arroz amarillo.',
+                        ingredientes: { 'Arroz': 100, 'Pollo': 150, 'Ají Dulce': 1, 'Cebolla': 0.2, 'Aceite': 20 }
+                    },
+                    {
+                        nombre: 'Sopa de Pollo y Verduras',
+                        desc: 'Ideal para la niña y rendir el pollo.',
+                        ingredientes: { 'Pollo': 120, 'Cebolla': 0.2, 'Ají Dulce': 1 }
+                    },
+                    {
+                        nombre: 'Bollo Pelón (Económico)',
+                        desc: 'Masa de maíz rellena de guiso.',
+                        ingredientes: { 'Harina de Maíz': 120, 'Carne Molida': 60, 'Ají Dulce': 1, 'Aceite': 10 }
+                    }
+                ],
+
+                init() {
+                    this.$watch('inventario', () => this.guardar());
+                },
+
+                guardar() {
+                    localStorage.setItem('vzla_stock', JSON.stringify(this.inventario));
+                },
+
+                agregarItem() {
+                    if(this.nuevoItem.nombre && this.nuevoItem.cantidad) {
+                        // Buscar si ya existe
+                        let existe = this.inventario.find(i => i.nombre.toLowerCase() === this.nuevoItem.nombre.toLowerCase());
+                        if(existe) {
+                            existe.cantidad += this.nuevoItem.cantidad;
+                        } else {
+                            this.inventario.push({...this.nuevoItem});
+                        }
+                        this.guardar();
+                        this.nuevoItem = { nombre: '', cantidad: null, unidad: 'g', categoria: 'Carbohidrato' };
+                        alert("¡Producto agregado!");
+                    }
+                },
+
+                eliminarItem(index) {
+                    if(confirm('¿Borrar este item?')) {
+                        this.inventario.splice(index, 1);
+                        this.guardar();
+                    }
+                },
+
+                // Lógica de Recetas
+                get recetasFiltradas() {
+                    if (this.busqueda === '') return this.recetario;
+                    return this.recetario.filter(r => 
+                        r.nombre.toLowerCase().includes(this.busqueda.toLowerCase()) || 
+                        r.desc.toLowerCase().includes(this.busqueda.toLowerCase())
+                    );
+                },
+
+                calcularCantidad(base) {
+                    // Lógica del Chef: Adulto = 1x, Niño = 0.5x
+                    let factor = this.config.adultos + (this.config.ninos * 0.5);
+                    return Math.ceil(base * factor);
+                },
+
+                obtenerUnidad(nombreIngrediente) {
+                    let item = this.inventario.find(i => i.nombre === nombreIngrediente);
+                    return item ? item.unidad : '??';
+                },
+
+                tieneIngrediente(nombre, cantidadNecesaria) {
+                    let item = this.inventario.find(i => i.nombre === nombre);
+                    return item && item.cantidad >= cantidadNecesaria;
+                },
+
+                verificarStock(receta) {
+                    for (let [ing, cantBase] of Object.entries(receta.ingredientes)) {
+                        let necesario = this.calcularCantidad(cantBase);
+                        if (!this.tieneIngrediente(ing, necesario)) return false;
+                    }
+                    return true;
+                },
+
+                cocinar(receta) {
+                    if(!confirm(`¿Confirmar preparación de ${receta.nombre}? Se descontarán los ingredientes.`)) return;
+                    
+                    for (let [ing, cantBase] of Object.entries(receta.ingredientes)) {
+                        let necesario = this.calcularCantidad(cantBase);
+                        let item = this.inventario.find(i => i.nombre === ing);
+                        if(item) item.cantidad -= necesario;
+                    }
+                    this.guardar();
+                    alert("¡A comer! Inventario actualizado.");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
