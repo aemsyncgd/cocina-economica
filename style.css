@@ -44,7 +44,8 @@ body {
 
 .btn-primary {
     background-color: var(--primary);
-    color: white;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     transition: all 0.2s;
 }
 
@@ -70,3 +71,23 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     color: var(--primary);
 }
+
+/* Tips Banner */
+.tips-banner {
+    background: linear-gradient(90deg, #3D7A55 0%, #2D5A3F 100%);
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+
+.tips-banner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(45deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+    pointer-events: none;
+}
+
