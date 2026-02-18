@@ -1,12 +1,9 @@
-/* PALETA DE COLORES Y VARIABLES */
 :root {
     --primary: #3D7A55;
     --dark: #14201D;
     --bg-light: #DDF6F1;
-    --action: #66CFA0;
     --accent-orange: #F97316;
     --accent-blue: #3B82F6;
-    --highlight: #fef08a;
 }
 
 [x-cloak] { display: none !important; }
@@ -14,57 +11,62 @@
 body { 
     background-color: var(--bg-light); 
     color: var(--dark);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
 }
 
-/* COMPONENTES REUTILIZABLES */
-.bg-custom-primary { background-color: var(--primary); }
-.bg-custom-orange { background-color: var(--accent-orange); }
-.bg-custom-blue { background-color: var(--accent-blue); }
-.text-custom-primary { color: var(--primary); }
-.text-custom-orange { color: var(--accent-orange); }
+/* FIX PARA SCROLL EN MÓVIL */
+.modal-overlay {
+    background-color: rgba(20, 32, 29, 0.8);
+    backdrop-filter: blur(8px);
+}
 
-/* TARJETAS DE RECETAS */
+/* El secreto del scroll: el max-height y el overflow en el contenedor correcto */
+.modal-container {
+    width: 95%;
+    max-width: 1000px;
+    max-height: 90vh;
+    background: white;
+    border-radius: 2rem;
+    overflow-y: auto; /* Scroll aquí para que todo se mueva */
+    position: relative;
+}
+
 .recipe-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     border: 1px solid rgba(0,0,0,0.05);
 }
+
 .recipe-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 25px -5px rgba(20, 32, 29, 0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
 }
 
-/* SIDEBAR MÓVIL */
-.sidebar-drawer {
-    transition: transform 0.3s ease-in-out;
-    width: 280px;
-}
-
-/* SCROLLBARS */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-light); }
-::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
-
-/* AJUSTE MODAL RESPONSIVE */
-.modal-content-wrapper {
-    display: flex;
-    flex-direction: column;
-}
-
-@media (min-width: 768px) {
-    .modal-content-wrapper {
-        flex-direction: row;
-    }
-}
-
-/* Botón de acción principal */
 .btn-primary {
     background-color: var(--primary);
     color: white;
+    transition: all 0.2s;
+}
+
+.btn-primary:active { transform: scale(0.95); }
+
+/* Selector de búsqueda personalizado */
+.search-selector {
+    background: #f1f5f9;
+    border-radius: 1rem;
+    padding: 0.25rem;
+}
+
+.search-selector button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
     font-weight: 800;
     transition: all 0.2s;
 }
-.btn-primary:hover:not(:disabled) {
-    background-color: var(--action);
-    transform: scale(1.02);
+
+.search-selector button.active {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: var(--primary);
 }
