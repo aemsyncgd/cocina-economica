@@ -1,0 +1,70 @@
+/* PALETA DE COLORES Y VARIABLES */
+:root {
+    --primary: #3D7A55;
+    --dark: #14201D;
+    --bg-light: #DDF6F1;
+    --action: #66CFA0;
+    --accent-orange: #F97316;
+    --accent-blue: #3B82F6;
+    --highlight: #fef08a;
+}
+
+[x-cloak] { display: none !important; }
+
+body { 
+    background-color: var(--bg-light); 
+    color: var(--dark);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* COMPONENTES REUTILIZABLES */
+.bg-custom-primary { background-color: var(--primary); }
+.bg-custom-orange { background-color: var(--accent-orange); }
+.bg-custom-blue { background-color: var(--accent-blue); }
+.text-custom-primary { color: var(--primary); }
+.text-custom-orange { color: var(--accent-orange); }
+
+/* TARJETAS DE RECETAS */
+.recipe-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+.recipe-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(20, 32, 29, 0.1);
+}
+
+/* SIDEBAR MÓVIL */
+.sidebar-drawer {
+    transition: transform 0.3s ease-in-out;
+    width: 280px;
+}
+
+/* SCROLLBARS */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-light); }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+/* AJUSTE MODAL RESPONSIVE */
+.modal-content-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .modal-content-wrapper {
+        flex-direction: row;
+    }
+}
+
+/* Botón de acción principal */
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    font-weight: 800;
+    transition: all 0.2s;
+}
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--action);
+    transform: scale(1.02);
+}
